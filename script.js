@@ -1,22 +1,22 @@
 
-let dataList;
+let heroesList;
 let homeList = [];
 let allData;
 const heroCard = document.querySelector('.hero__card');
 let currentPage = 'https://swapi.dev/api/people/';
 
+//Начало приложения
 fetch(currentPage)
     .then(response => response.json())
     .then((data) => {
-        dataList = data.results;
+        heroesList = data.results;
         allData = data;
-        //findPlanet();
+        findPlanet(heroesList);
         console.log(allData)
-        console.log(currentPage)
         render();
      //   changePage()
         
-    });
+});
 
 let testPage = fetch(currentPage)
 .then(response => response.json())
@@ -24,45 +24,67 @@ let testPage = fetch(currentPage)
     testPage = data.next
     console.log(testPage)
  //   changePage()
-    
 });
 console.log(testPage)
 
-// function findPlanet(){
-//     dataList.map(function(hero){
-//         fetch(hero.homeworld)
-//         .then(response => response.json())
-//         .then((home) =>{
-//             homeList.push(home.name);
-//             //console.log(homeList)
-//             //console.log(home.name)
-//         })
-//        // console.log(homeList)
+function findPlanet(heroes){
+    heroes.map(function(hero, idx){
+        fetch(hero.homeworld)
+        .then(response => response.json())
+        .then((home) =>{
+            homeList[idx] = home.name;
+            render();
+        })
+    })
+}
 
-//     })
+function nextPage(){
+    if(allData.next){
+        clearRender();
+        fetch(allData.next)
+            .then(response => response.json())
+            .then((data) => {
+                heroesList = data.results;
+                allData = data;
+                findPlanet(heroesList);
+                console.log(allData)
+                render();
+        });
+    }
+}
+function prevPage(){
+    if(allData.previous){
+        clearRender();
+        fetch(allData.previous)
+            .then(response => response.json())
+            .then((data) => {
+                heroesList = data.results;
+                allData = data;
+                findPlanet(heroesList);
+                console.log(allData)
+                render();
+        });
+    }
+}
 
-// }
-// console.log(homeList)
+function clearRender(){
+    const warriorsList = document.querySelector('.warriors__list');
+    warriorsList.innerHTML = '';
+    homeList = [];
+}
 
 function render() {
     const warriorsList = document.querySelector('.warriors__list');
-    warriorsList.innerHTML = dataList.map(function (warrior, idx) {
+    const loader = `
+        <div class="container small_loader">
+            <div class="yellow"></div>
+            <div class="red"></div>
+            <div class="blue"></div>
+            <div class="violet"></div>
+        </div>
+    `;
 
-
-        //console.log(warrior.homeworld)
-        fetch(warrior.homeworld)
-            .then(response => response.json())
-            .then((home) => {
-                homeList.push(home.name);
-
-            })
-
-        //  console.log(homeList)
-
-        //  ${fetch(warrior.homeworld).then(response => response.json()).then((home) => (home.name))}
-
-
-
+    warriorsList.innerHTML = heroesList.map(function (warrior, idx) {
         return `
         <li class="hero">
                 <div class="main__hero__block">
@@ -82,7 +104,7 @@ function render() {
                     <p class="birthday__info-date text-info">${warrior.birth_year}</p>
                    
                     <p class="planet__info text-info">Planet:</p>
-                    <p class="planet__info-place text-info"></p>
+                    <p class="planet__info-place text-info">${homeList[idx] ? homeList[idx] : loader}</p>
                 </div>
             </li>
         `
@@ -115,28 +137,28 @@ function openCloseCard(idx) {
 // функция заполняем карточку героя
 function showHeroInfo(idx) {
     const heroName = document.querySelector('.hero__title-info');
-    heroName.textContent = dataList[idx].name;
+    heroName.textContent = heroesList[idx].name;
 
     const heroBirthday = document.querySelector('.year__info');
-    heroBirthday.textContent = dataList[idx].birth_year;
+    heroBirthday.textContent = heroesList[idx].birth_year;
 
     const heroHome = document.querySelector('.home__info');
-    heroHome.textContent = dataList[idx].homeworld;
+    heroHome.textContent = heroesList[idx].homeworld;
 
     const heroEye = document.querySelector('.eye__info');
-    heroEye.textContent = dataList[idx].eye_color;
+    heroEye.textContent = heroesList[idx].eye_color;
 
     const heroGender = document.querySelector('.gender__type');
-    heroGender.textContent = dataList[idx].gender;
+    heroGender.textContent = heroesList[idx].gender;
 
     const heroHair = document.querySelector('.hair__info');
-    heroHair.textContent = dataList[idx].hair_color;
+    heroHair.textContent = heroesList[idx].hair_color;
 
     const heroMass = document.querySelector('.mass__value');
-    heroMass.textContent = dataList[idx].mass;
+    heroMass.textContent = heroesList[idx].mass;
 
     const heroSkin = document.querySelector('.skin__type');
-    heroSkin.textContent = dataList[idx].skin_color;
+    heroSkin.textContent = heroesList[idx].skin_color;
 
     const heroPic = document.querySelector('.hero__pic');
     heroPic.style.backgroundImage = 'url('+picBank[idx]+')';
@@ -159,15 +181,11 @@ function showHeroInfo(idx) {
 
 
 
-const prevPage = document.getElementById('arrowLeft')
-prevPage.onclick = () => {
-    console.log('bye')
-}
+const prev = document.getElementById('arrowLeft')
+prev.onclick = prevPage
 
-// const nextPage = document.getElementById('arrowRight')
-// nextPage.onclick = () => {
-//     console.log('hello')
-// }
+const next = document.getElementById('arrowRight')
+next.onclick = nextPage;
 
 const picBank = [
     'img/luke_skywalker.jpg',
